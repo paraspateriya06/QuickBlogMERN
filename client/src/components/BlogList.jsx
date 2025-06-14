@@ -49,6 +49,7 @@ import { blog_data, blogCategories } from "../assets/assets";
 import { motion } from "framer-motion";
 import BlogCard from "./BlogCard";
 
+
 const BlogList = () => {
 
     const [menu, setMenu] = useState("All");
@@ -88,3 +89,4 @@ const BlogList = () => {
 };
 
 export default BlogList;
+
