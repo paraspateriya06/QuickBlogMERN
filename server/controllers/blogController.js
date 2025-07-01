@@ -2,45 +2,40 @@ import fs from "fs";
 import imagekit from "../configs/imageKit.js";
 import Blog from "../models/Blog.js";
 import Comment from "../models/Comment.js";
+import main from "../configs/gemini.js";
 
 // Controller to add a new blog
 export const addBlog = async (req, res) => {
   try {
-    // Destructure fields from the incoming JSON payload inside `req.body.blog`
     const { title, subTitle, description, category, isPublished } = JSON.parse(
       req.body.blog
     );
 
-    const imageFile = req.file; // Uploaded image file from multer
+    const imageFile = req.file;
 
-    // Validate required fields
     if (!title || !description || !category || !imageFile) {
       return res.json({ success: false, message: "Missing Required Fields" });
     }
 
-    // Read the uploaded image file into a buffer
     const fileBuffer = fs.readFileSync(imageFile.path);
 
-    // Upload image to ImageKit
     const response = await imagekit.upload({
       file: fileBuffer,
       fileName: imageFile.originalname,
       folder: "/blogs",
     });
 
-    // Generate an optimized image URL using transformations
     const optimizedImageUrl = imagekit.url({
       path: response.filePath,
       transformation: [
-        { quality: "auto" },   // Automatically adjust image quality
-        { format: "webp" },    // Convert image to WebP format
-        { width: "1280" },     // Resize width
+        { quality: "auto" },
+        { format: "webp" },
+        { width: "1280" },
       ],
     });
 
-    const image = optimizedImageUrl; // Final image URL to store in DB
+    const image = optimizedImageUrl;
 
-    // Create a new blog in the database
     await Blog.create({
       title,
       subTitle,
@@ -52,7 +47,6 @@ export const addBlog = async (req, res) => {
 
     res.json({ success: true, message: "blog added Successfully" });
   } catch (error) {
-    // Catch and return any server-side errors
     res.json({ success: false, message: error.message });
   }
 };
@@ -60,7 +54,7 @@ export const addBlog = async (req, res) => {
 // Controller to get all published blogs
 export const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ isPublished: true }); // Only fetch published blogs
+    const blogs = await Blog.find({ isPublished: true });
     res.json({ success: true, blogs });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -71,12 +65,10 @@ export const getAllBlogs = async (req, res) => {
 export const getBlogById = async (req, res) => {
   try {
     const { blogId } = req.params;
-
-    const blog = await Blog.findById(blogId); // Find blog using ID
+    const blog = await Blog.findById(blogId);
     if (!blog) {
       return res.json({ success: false, message: "Blog not found" });
     }
-
     res.json({ success: true, blog });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -87,8 +79,7 @@ export const getBlogById = async (req, res) => {
 export const deleteBlogById = async (req, res) => {
   try {
     const { id } = req.body;
-    await Blog.findByIdAndDelete(id); // Remove blog from DB
-
+    await Blog.findByIdAndDelete(id);
     res.json({ success: true, message: "Blog deleted Successfully" });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -99,11 +90,9 @@ export const deleteBlogById = async (req, res) => {
 export const togglePublish = async (req, res) => {
   try {
     const { id } = req.body;
-    const blog = await Blog.findById(id); // Find blog
-
-    blog.isPublished = !blog.isPublished; // Toggle publish state
-    await blog.save(); // Save changes
-
+    const blog = await Blog.findById(id);
+    blog.isPublished = !blog.isPublished;
+    await blog.save();
     res.json({ success: true, message: "Blog status updated" });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -114,8 +103,7 @@ export const togglePublish = async (req, res) => {
 export const addComment = async (req, res) => {
   try {
     const { blog, name, content } = req.body;
-
-    await Comment.create({ blog, name, content }); // Create new comment
+    await Comment.create({ blog, name, content });
     res.json({ success: true, message: "comment added for review" });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -126,16 +114,23 @@ export const addComment = async (req, res) => {
 export const getBlogComments = async (req, res) => {
   try {
     const { blogId } = req.body;
-
     const comments = await Comment.find({
       blog: blogId,
       isApproved: true,
-    }).sort({ createdAt: -1 }); // Sort by most recent first
-
+    }).sort({ createdAt: -1 });
     res.json({ success: true, comments });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
-
+// Controller to generate blog content using Gemini
+export const generateContent = async (req, res) => {
+  try {
+    const { prompt } = req.body;
+    const content = await main(prompt + ' Generate a blog Content for this topic in simple text format');
+    res.json({ success: true, content });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};

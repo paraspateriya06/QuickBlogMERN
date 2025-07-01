@@ -2,13 +2,14 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    // Listen to successful connection event (fix: corrected spelling from "connnected" to "connected")
+    console.log(process.env.MONGODB_URI)
+    // Listen to successful connection event
     mongoose.connection.on("connected", () =>
       console.log(" Database is Connected Successfully")
     );
 
-    // Attempt to connect to MongoDB using the URI from environment variable
-    await mongoose.connect(`${process.env.MONGODB_URI}/quickBlog`);
+    // Connect to MongoDB using environment URI (already includes /quickBlog if set correctly in .env)
+    await mongoose.connect(process.env.MONGODB_URI);
 
   } catch (error) {
     // Log any connection errors
