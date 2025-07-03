@@ -2,6 +2,8 @@
 
 **QuickBlogMERN** is a full-stack blog publishing platform built using the **MERN stack (MongoDB, Express.js, React.js, Node.js)**. It allows users to register, log in, create blog posts with image uploads, toggle publish status, add comments, and even generate content using AI via Google’s **Gemini API**.
 
+**Live_link** => https://quickblogfrontend-coral.vercel.app/
+
 ---
 
 ## 🚀 Features
